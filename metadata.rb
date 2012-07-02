@@ -1,8 +1,8 @@
-maintainer       "Martha Greenberg"
+maintainer       "Wixpress"
 maintainer_email "marthag@wix.com"
-license          "Apache 2.0"
-description      "Manages Solaris zones"
+license          "All rights reserved"
+description      "Installs/Configures Solaris zones"
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.rdoc'))
-version          "0.0.1"
+version          "0.0.2"
 
 supports "solaris2"

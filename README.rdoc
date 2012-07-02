@@ -6,8 +6,10 @@ As of now, it doesn't not reconfigure any options if they have changed
 after the initial creation and only a limited sub-set of configuration
 options are supported.
 
-/etc/sysidcfg contents should be provided a string, with the
-root_password being crypted first.
+New in version 0.0.2:
+
+* /etc/sysidcfg is now created by default from a template.  Turn this off by setting use_sysidcfg to false.
+* If copy_sshd_config is true (default), /etc/ssh/sshd_config is copied from the global zone to the new zone.
 
 = REQUIREMENTS:
 
@@ -15,34 +17,27 @@ Tested on Solaris x86 5.10.
 
 = ATTRIBUTES:
 
+For /etc/sysidcfg:
+  node[:zone][:timeserver] - The NTP server to use.
+  node[:zone][:timezone] - The timezone for the zone.
+  node[:zone][:dns_servers] - Array of DNS servers.
+
 = USAGE:
 
-directory "/opt/zones"
 
-zone "testzone" do
-  action :delete
-  path "/opt/zones/testzone"
+zone "test" do
+  action :start
+  path "/opt/zones/test"
   limitpriv "default,dtrace_proc,dtrace_user"
-  ip "192.168.0.100/24"
+  ip "192.168.0.10/24"
   interface "e1000g0"
-# testpw
-  sysidcfg <<-EOH
-system_locale=C
-timezone=US/Eastern
-terminal=xterms
-security_policy=NONE
-root_password=whbFxl4vH5guE
-timeserver=pool.ntp.org
-name_service=DNS {domain_name=example.com
-       name_server=192.168.0.19}
-network_interface=primary { hostname=testzone
-       ip_address=192.168.0.10
-       netmask=255.255.255.0
-       protocol_ipv6=no
-       default_route=192.168.0.1}
-nfs4_domain=dynamic
-EOH
+  # testpw
+  password "whbFxl4vH5guE"
+  use_sysidcfg true
+  sysidcfg_template "sysidcfg.erb"
+  copy_sshd_config false
 end
+
 
 Actions:
 

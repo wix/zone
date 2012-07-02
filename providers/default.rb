@@ -8,13 +8,14 @@ def load_current_resource
   @zone.limitpriv(new_resource.limitpriv)
   @zone.ip(new_resource.ip)
   @zone.interface(new_resource.interface)
-  @zone.sysidcfg(new_resource.sysidcfg)
+  @zone.password(new_resource.password)
+  @zone.use_sysidcfg(new_resource.use_sysidcfg)
+  @zone.sysidcfg_template(new_resource.sysidcfg_template)
+  @zone.copy_sshd_config(new_resource.copy_sshd_config)
 
   @zone.info(info?)
-#  @zone.created(created?)
   @zone.state(state?)
-#  @zone.installed(installed?)
-#  @zone.running(running?)
+
 end
 
 action :configure do
@@ -29,10 +30,18 @@ action :install do
   unless installed?
     Chef::Log.info("Installing zone #{@zone.name}")
     system("zoneadm -z #{@zone.name} install")
-  end
-  sysidcfg = @zone.sysidcfg
-  file "#{@zone.path}/root/etc/sysidcfg" do
-    content sysidcfg
+  
+    if @zone.use_sysidcfg
+      zone = @zone
+      template "#{@zone.path}/root/etc/sysidcfg" do
+        source zone.sysidcfg_template
+        variables(:zone => zone)
+      end
+    end
+    
+    if @zone.copy_sshd_config
+      execute "cp /etc/ssh/sshd_config #{@zone.path}/root/etc/ssh/sshd_config"
+    end
   end
 end
 
