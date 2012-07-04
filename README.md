@@ -47,7 +47,7 @@ For the zones:
     iptype            - "shared" (default) or "exclusive".
     nets              - Array of network interfaces to add.  Interfaces must be in the format of "address:physical(:defrouter)
     datasets          - Array of datasets to include on this zone.
-    inherits          - Array of inherit-pkg-dir directory.  Defaults to [ "/lib", "/platform", "/sbin", "/usr" ].
+    inherits          - Array of inherit-pkg-dir directories. These cannot be changed after the zone is installed. Defaults to [ "/lib", "/platform", "/sbin", "/usr" ].
     password          - Root password for the zone, to put in /etc/sysidcfg.  Must be encyrpted with crypt.
     use_sysidcfg      - Whether or not to create a sysidcfg file. Defaults to true.
     sysidcfg_template - Template name to use for /etc/sysidcfg.  Defaults to "sysidcfg.erb"

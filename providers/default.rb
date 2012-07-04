@@ -102,29 +102,31 @@ def current_props?
   header = ""
   addr = ""
   @zone.info.stdout.split("\n").each do |line|
-    l = line.split(/: ?/)
-    if @special_props.include?(l[0])
-      header = l[0]
+    settings = line.split(/: ?/)
+    if @special_props.include?(settings[0])
+      header = settings[0]
       prop_hash[header] ||= []
     else 
-      s = l[0].split("\t")
-      unless s[0] == ""
-        prop_hash[s[0]] = l[1] 
+      second_level = settings[0].split("\t")
+      unless second_level[0] == ""
+        prop_hash[second_level[0]] = settings[1] 
       else 
+        # special case for network settings.
+        # build them into the format we use: address:physical(:defrouter)
         if header == "net"
-          case s[1]
+          case second_level[1]
           when "address"
-            addr = l[1]
+            addr = settings[1]
           when "physical"
-            addr += ":#{l[1]}"
+            addr += ":#{settings[1]}"
           when "defrouter"
-            addr += ":#{l[1]}"
+            addr += ":#{settings[1]}"
             prop_hash[header].push(addr)
           when "defrouter not specified"
             prop_hash[header].push(addr)
           end
         else
-          prop_hash[header].push(l[1])
+          prop_hash[header].push(settings[1])
         end
       end
     end
@@ -137,7 +139,6 @@ def current_props?
     end
   end
 
-  Chef::Log.debug("Current props =  #{prop_hash}")
   prop_hash
 end
 
@@ -154,11 +155,11 @@ def desired_props?
     end
     prop_hash[prop_name] = new_resource.send(prop)
   end
+
   prop_hash["dataset"] = new_resource.send("datasets").sort
   prop_hash["inherit-pkg-dir"] = new_resource.send("inherits").sort
   prop_hash["net"] = new_resource.send("nets").sort
 
-  Chef::Log.debug("Desired props =  #{prop_hash}")
   prop_hash
 end
 
@@ -234,13 +235,13 @@ def do_install
   
   if @zone.use_sysidcfg
     zone = @zone
-    template "#{@zone.path}/root/etc/sysidcfg" do
+    template "#{@zone.desired_props["zonepath"]}/root/etc/sysidcfg" do
       source zone.sysidcfg_template
       variables(:zone => zone)
     end
   end
   
   if @zone.copy_sshd_config
-    execute "cp /etc/ssh/sshd_config #{@zone.path}/root/etc/ssh/sshd_config"
+    execute "cp /etc/ssh/sshd_config #{@zone.desired_props["zonepath"]}/root/etc/ssh/sshd_config"
   end
 end
