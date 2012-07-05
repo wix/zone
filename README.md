@@ -1,3 +1,4 @@
+[![Build Status](https://secure.travis-ci.org/wix/zone.png)](http://travis-ci.org/wix/zone)
 
 Description
 ===========
