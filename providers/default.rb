@@ -32,40 +32,39 @@ action :install do
   unless installed?
     do_install
   end
+  if @zone.use_sysidcfg
+    zone = @zone
+    template "#{@zone.desired_props["zonepath"]}/root/etc/sysidcfg" do
+      source zone.sysidcfg_template
+      variables(:zone => zone)
+    end
+  end  
 end
 
 action :start do
   action_install
   unless running?
-    Chef::Log.info("Booting zone #{@zone.name}")
-    system("zoneadm -z #{@zone.name} boot")
-    new_resource.updated_by_last_action(true)
+    do_boot
   end
 end
 
 action :delete do
   action_stop
   if created?
-    Chef::Log.info("Deleting zone #{@zone.name}")
-    system("zonecfg -z #{@zone.name} delete -F")
-    new_resource.updated_by_last_action(true)
+    do_delete
   end
 end
 
 action :stop do
   if running?
-    Chef::Log.info("Halting zone #{@zone.name}")
-    system("zoneadm -z #{@zone.name} halt")
-    new_resource.updated_by_last_action(true)
+    do_halt
   end
 end
 
 action :uninstall do
   action_stop
   if installed?
-    Chef::Log.info("Uninstalling zone #{@zone.name}")
-    system("zoneadm -z #{@zone.name} uninstall -F")
-    new_resource.updated_by_last_action(true)
+    do_uninstall
   end
 end
 
@@ -233,15 +232,31 @@ def do_install
     new_resource.updated_by_last_action(true)
   end
   
-  if @zone.use_sysidcfg
-    zone = @zone
-    template "#{@zone.desired_props["zonepath"]}/root/etc/sysidcfg" do
-      source zone.sysidcfg_template
-      variables(:zone => zone)
-    end
-  end
-  
   if @zone.copy_sshd_config
     execute "cp /etc/ssh/sshd_config #{@zone.desired_props["zonepath"]}/root/etc/ssh/sshd_config"
   end
+end
+
+def do_boot
+  Chef::Log.info("Booting zone #{@zone.name}")
+  system("zoneadm -z #{@zone.name} boot")
+  new_resource.updated_by_last_action(true)
+end
+
+def do_delete
+  Chef::Log.info("Deleting zone #{@zone.name}")
+  system("zonecfg -z #{@zone.name} delete -F")
+  new_resource.updated_by_last_action(true)
+end
+
+def do_halt
+  Chef::Log.info("Halting zone #{@zone.name}")
+  system("zoneadm -z #{@zone.name} halt")
+  new_resource.updated_by_last_action(true)
+end
+
+def do_uninstall
+  Chef::Log.info("Uninstalling zone #{@zone.name}")
+  system("zoneadm -z #{@zone.name} uninstall -F")
+  new_resource.updated_by_last_action(true)
 end
